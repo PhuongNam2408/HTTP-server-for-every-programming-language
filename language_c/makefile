@@ -1,6 +1,7 @@
 CC := gcc
+FLAGS := -Wall -Werror -g
 
 all:
-	$(CC) main.c -o main
+	$(CC) $(FLAGS) main.c -o main
 clean:
 	rm -f *.o main
