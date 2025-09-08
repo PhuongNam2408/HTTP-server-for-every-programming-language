@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <fcntl.h> // open()
+#include <unistd.h> // dup2()
 
 /*******************************************************************************
  ***************************  Defines / Macros  ********************************
@@ -134,11 +136,26 @@ static void* client_connection_thread_handler(void *arg)
  **************************   GLOBAL FUNCTIONS   *******************************
  ******************************************************************************/
 int main(void) {
-  int sockfd = -1, status, connfd = -1;
+  int sockfd = -1, status, connfd = -1, log_fd;
   socklen_t len;
   struct sockaddr_in server_addr, client_addr;
   const int enable_reuseaddress = 1;
   int thread_data_list[HTTP_MAX_SOCKET_CONNECTIONS];
+
+  log_fd = open("log.txt", O_CREAT | O_RDWR | O_TRUNC);
+  CHECK_STATUS_MINUS_1_LOG_PERROR_RETURN(log_fd,
+                                         "open log.txt success",
+                                         "open log.txt failed");
+
+  status = dup2(log_fd, 1);
+  CHECK_STATUS_MINUS_1_LOG_PERROR_RETURN(status,
+                                         "dup2 stdout success",
+                                         "dup2 stdout failed");
+  
+  status = close(log_fd);
+  CHECK_STATUS_MINUS_1_LOG_PERROR_RETURN(status,
+                                         "close log_fd success",
+                                         "close log_fd failed");
   
   // Create a socket
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
